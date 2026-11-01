@@ -45,6 +45,8 @@ Range: bytes=0-1, 0-2, 0-3, 0-4, ..., 0-250
 
 ## 📊 Live Attack-vs-Defense Benchmark Results
 
+![Live Terminal Benchmark Output](./assets/terminal_benchmark_proof.png)
+
 Run the automated benchmark yourself with a single command:
 
 ```bash
