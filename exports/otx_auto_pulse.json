@@ -1,0 +1,126 @@
+{
+  "generator": "S3-Shield Protocol Defense Engine v1.0",
+  "generated_at": "2026-11-01T06:07:54.678826+00:00",
+  "summary_metrics": {
+    "total_requests": 28,
+    "forwarded_clean": 12,
+    "blocked_http_range": 1,
+    "blocked_tcp_exhaustion": 11,
+    "blocked_rogue_robot": 2,
+    "blocked_sensitive_probe": 2,
+    "origin_bytes_saved": 55524
+  },
+  "otx_pulses_ready_for_submission": [
+    {
+      "name": "HTTP range in small image (S3#)",
+      "description": "Automated telemetry captured and neutralized at the wire level by S3-Shield Reverse Proxy. Blocked 1 malicious requests.",
+      "tlp": "green",
+      "public": true,
+      "tags": [
+        "http",
+        "range-header",
+        "small-image",
+        "dos",
+        "s3-shield",
+        "blacklist"
+      ],
+      "attack_ids": [
+        "T1499.002"
+      ],
+      "indicators": [
+        {
+          "indicator": "64.227.108.15",
+          "type": "IPv4",
+          "description": "Blocked by S3-Shield: HTTP range in small image (S3#) (1 events)"
+        }
+      ]
+    },
+    {
+      "name": "Open of aggressive number of TCP connections",
+      "description": "Automated telemetry captured and neutralized at the wire level by S3-Shield Reverse Proxy. Blocked 11 malicious requests.",
+      "tlp": "green",
+      "public": true,
+      "tags": [
+        "tcp",
+        "dos",
+        "resource-exhaustion",
+        "s3-shield",
+        "blacklist"
+      ],
+      "attack_ids": [
+        "T1499.001"
+      ],
+      "indicators": [
+        {
+          "indicator": "178.128.94.55",
+          "type": "IPv4",
+          "description": "Blocked by S3-Shield: Open of aggressive number of TCP connections (11 events)"
+        }
+      ]
+    },
+    {
+      "name": "Rogue Robot (S3#)",
+      "description": "Automated telemetry captured and neutralized at the wire level by S3-Shield Reverse Proxy. Blocked 2 malicious requests.",
+      "tlp": "green",
+      "public": true,
+      "tags": [
+        "tcp",
+        "http",
+        "rogue",
+        "robot",
+        "honeypot",
+        "s3-shield",
+        "blacklist"
+      ],
+      "attack_ids": [
+        "T1595.002"
+      ],
+      "indicators": [
+        {
+          "indicator": "103.145.254.88",
+          "type": "IPv4",
+          "description": "Blocked by S3-Shield: Rogue Robot (S3#) (2 events)"
+        },
+        {
+          "indicator": "194.163.176.211",
+          "type": "IPv4",
+          "description": "Blocked by S3-Shield: Rogue Robot (S3#) (2 events)"
+        }
+      ]
+    },
+    {
+      "name": "Searching for sensitive file or directory",
+      "description": "Automated telemetry captured and neutralized at the wire level by S3-Shield Reverse Proxy. Blocked 2 malicious requests.",
+      "tlp": "green",
+      "public": true,
+      "tags": [
+        "http",
+        "sensitive-file",
+        "bkp",
+        "backup",
+        "s3-shield",
+        "blacklist"
+      ],
+      "attack_ids": [
+        "T1595.003"
+      ],
+      "indicators": [
+        {
+          "indicator": "185.196.220.74",
+          "type": "IPv4",
+          "description": "Blocked by S3-Shield: Searching for sensitive file or directory (2 events)"
+        },
+        {
+          "indicator": "/.env.backup",
+          "type": "FilePath",
+          "description": "Probed sensitive backup/configuration path"
+        },
+        {
+          "indicator": "/admin/db_backup.bkp",
+          "type": "FilePath",
+          "description": "Probed sensitive backup/configuration path"
+        }
+      ]
+    }
+  ]
+}
