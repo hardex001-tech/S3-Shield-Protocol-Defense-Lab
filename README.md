@@ -1,13 +1,11 @@
 # 🛡️ S3-Shield: Protocol-Level Reverse Proxy & Attack Lab for the 4 `BotnetExposer` (`S3#`) Attacks
 
-> **Zero UI Fluff. Pure Protocol Defense Engineering.**
-> Reproducing and neutralizing 4 live Internet attack vectors observed on **AlienVault OTX (LevelBlue)** at the HTTP/TCP wire level:
+> **Zero UI Fluff. Pure Python Protocol Defense Engineering.**
+> Reproducing and neutralizing 4 live Internet attack vectors observed in global threat intelligence research at the HTTP/TCP wire level:
 > 1. **`HTTP range in small image (S3#)`** *(38.54x Multipart Byte-Range Amplification)*
 > 2. **`Open of aggressive number of TCP connections`** *(Socket Pool Exhaustion)*
 > 3. **`Rogue Robot (S3#)`** *(Unscrupulous High-Rate Crawlers & `robots.txt` Trap Evasion)*
 > 4. **`Searching for sensitive file or directory`** *(Automated `.bkp`, `.env`, and `/admin` Enumeration)*
-
-![AlienVault OTX BotnetExposer Telemetry](./assets/otx_botnet_exposer_pulses.png)
 
 ---
 
