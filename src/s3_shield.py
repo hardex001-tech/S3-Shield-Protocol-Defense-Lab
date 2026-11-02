@@ -30,6 +30,7 @@ from datetime import datetime, timezone
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import json
 from pathlib import Path
+import os
 import re
 import threading
 import time
@@ -65,17 +66,35 @@ class S3ShieldState:
         }
 
     def record_block(self, attack_type: str, mitre_id: str, client_ip: str, path: str, detail: str, bytes_saved: int = 0):
+        event = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "attack_type": attack_type,
+            "mitre_id": mitre_id,
+            "client_ip": client_ip,
+            "path": path,
+            "detail": detail,
+            "origin_bytes_saved": bytes_saved
+        }
         with self.lock:
-            self.events.append({
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "attack_type": attack_type,
-                "mitre_id": mitre_id,
-                "client_ip": client_ip,
-                "path": path,
-                "detail": detail,
-                "origin_bytes_saved": bytes_saved
-            })
+            self.events.append(event)
             self.metrics["origin_bytes_saved"] += bytes_saved
+
+        # If the organization configured ALERT_WEBHOOK_URL (Slack / Discord / SIEM), fire live alert
+        webhook_url = os.getenv("ALERT_WEBHOOK_URL", "").strip()
+        if webhook_url:
+            try:
+                req = urllib.request.Request(
+                    webhook_url,
+                    data=json.dumps({
+                        "text": f"[S3-Shield BLOCKED] {attack_type} ({mitre_id}) from {client_ip} on {path}",
+                        "event": event
+                    }).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST"
+                )
+                urllib.request.urlopen(req, timeout=4)
+            except Exception:
+                pass
 
     def export_otx_pulses_json(self, output_file: Path) -> Dict[str, Any]:
         """
@@ -176,19 +195,22 @@ def inspect_http_range_header(path: str, range_header: Optional[str]) -> Tuple[b
 
 class S3ShieldProxyHandler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
-    origin_base_url = "http://127.0.0.1:9001"
+    # Dynamically read upstream origin URL from ORIGIN_BASE_URL env var if set by the organization
+    origin_base_url = os.getenv("ORIGIN_BASE_URL", "http://127.0.0.1:9001").rstrip("/")
     max_concurrent_per_ip = 5
     max_burst_per_window = 12
     burst_window_sec = 2.5
+    # In production (default), ignore client-supplied simulated IP headers so attackers cannot spoof IPs
+    allow_simulated_ip = False
 
     def log_message(self, format, *args):
         pass
 
     def _get_client_ip(self) -> str:
-        # Allow X-Simulated-Attacker-IP in local lab benchmarks so each attack vector has its own real OTX IP
-        sim_ip = self.headers.get("X-Simulated-Attacker-IP")
-        if sim_ip:
-            return sim_ip.strip()
+        if self.allow_simulated_ip:
+            sim_ip = self.headers.get("X-Simulated-Attacker-IP")
+            if sim_ip:
+                return sim_ip.strip()
         return self.client_address[0]
 
     def _send_shield_block(self, status_code: int, status_text: str, rule_name: str, reason: str, extra_headers: Optional[Dict[str, str]] = None):
@@ -351,12 +373,13 @@ class S3ShieldProxyHandler(BaseHTTPRequestHandler):
                 )
 
 
-def start_shield_proxy(host: str = "127.0.0.1", port: int = 9002) -> ThreadingHTTPServer:
+def start_shield_proxy(host: str = "127.0.0.1", port: int = 9002, allow_simulated_ip: bool = False) -> ThreadingHTTPServer:
+    S3ShieldProxyHandler.allow_simulated_ip = allow_simulated_ip
     server = ThreadingHTTPServer((host, port), S3ShieldProxyHandler)
     return server
 
 
 if __name__ == "__main__":
-    srv = start_shield_proxy()
-    print("[S3-Shield] Protocol Reverse Proxy listening on http://127.0.0.1:9002 -> protecting http://127.0.0.1:9001")
+    srv = start_shield_proxy(allow_simulated_ip=False)
+    print(f"[S3-Shield] Production Reverse Proxy listening on http://0.0.0.0:9002 -> protecting {S3ShieldProxyHandler.origin_base_url}")
     srv.serve_forever()

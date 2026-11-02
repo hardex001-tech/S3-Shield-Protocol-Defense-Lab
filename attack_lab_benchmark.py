@@ -131,7 +131,7 @@ def run_attack_4_sensitive_files(port: int) -> Dict[str, Any]:
 
 def main():
     origin_srv = start_origin_server("127.0.0.1", 9001)
-    shield_srv = start_shield_proxy("127.0.0.1", 9002)
+    shield_srv = start_shield_proxy("127.0.0.1", 9002, allow_simulated_ip=True)
 
     t_origin = threading.Thread(target=origin_srv.serve_forever, daemon=True)
     t_shield = threading.Thread(target=shield_srv.serve_forever, daemon=True)
